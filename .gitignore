@@ -1,9 +1,10 @@
 # Magento generated directories
 /vendor/
-/var/
-/pub/static/*
-/pub/media/*
-/generated/
+/magento/generated/*
+/magento/var/
+/elasticsearch/nodes/*
+/magento/pub/static/*
+/magento/pub/media/*
 
 # Magento environment config
 /app/etc/env.php
