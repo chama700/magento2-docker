@@ -1,6 +1,9 @@
 # MAGENTO 2 INSTALLATION (Docker Compose)
 ## Author
 - Chaymae Belamkadem
+
+  <img width="1802" height="1035" alt="image" src="https://github.com/user-attachments/assets/a88eb327-c684-4775-adb9-2165c15ff3b2" />
+
 ## Prerequisites
 
 Make sure you have:
