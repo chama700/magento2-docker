@@ -1,1 +1,0 @@
-/app/lib/web/js-cookie/cookie-wrapper.js
