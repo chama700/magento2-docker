@@ -11,12 +11,12 @@ class Data extends AbstractHelper
         return $message;
     }
 
-    // Intentional code quality issues for testing:
-    public function badFunction()
+    // Corrected function for code quality
+    public function addNumbers()
     {
-        $a=1;
-        $b=2;
-        $c=$a+$b;
-        return $c;
+        $firstNumber  = 1;
+        $secondNumber = 2;
+        $sum          = $firstNumber + $secondNumber;
+        return $sum;
     }
 }
