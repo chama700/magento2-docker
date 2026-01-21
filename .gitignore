@@ -1,5 +1,5 @@
 # Magento generated directories
-magento/vendor/*
+/magento/vendor/*
 /magento/generated/*
 /magento/var/
 /elasticsearch/nodes/*
