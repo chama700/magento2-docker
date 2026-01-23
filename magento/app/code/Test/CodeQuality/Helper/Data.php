@@ -1,4 +1,5 @@
 <?php
+
 namespace Test\CodeQuality\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -7,16 +8,16 @@ class Data extends AbstractHelper
 {
     public function getMessage()
     {
-        $message = 'Hello, Magento Code Quality!';
+        $message = 'Hello, Magento Code Quality test!';
         return $message;
     }
 
-    // Intentional code quality issues for testing:
-    public function badFunction()
+    // Corrected function for code quality
+    public function addNumbers()
     {
-        $a=1;
-        $b=2;
-        $c=$a+$b;
-        return $c;
+        $firstNumber  = 1;
+        $secondNumber = 2;
+        $sum          = $firstNumber + $secondNumber;
+        return $sum;
     }
 }

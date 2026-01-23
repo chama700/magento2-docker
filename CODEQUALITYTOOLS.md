@@ -301,6 +301,80 @@ exit 0
 
 > ![img_4.png](img_4.png)
 
+phtml check:
+
+> ![img_7.png](img_7.png)
+
+```
+#!/bin/sh
+
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(php|phtml)$')
+[ -z "$FILES" ] && exit 0
+
+PHP_FILES=$(echo "$FILES" | grep '\.php$')
+PHTML_FILES=$(echo "$FILES" | grep '\.phtml$')
+
+CONTAINER_FILES=""
+for f in $FILES; do
+CONTAINER_FILE=${f#magento/}
+CONTAINER_FILES="$CONTAINER_FILES /app/$CONTAINER_FILE"
+done
+
+echo "🐳 Running PHPCS..."
+docker exec -u application web bash -lc \
+"cd /app && vendor/bin/phpcs --extensions=php,phtml $CONTAINER_FILES"
+[ $? -ne 0 ] && echo -e "${YELLOW}PHPCS issues found${NC}" && exit 1
+
+if [ -n "$PHP_FILES" ]; then
+CONTAINER_PHP_FILES=""
+for f in $PHP_FILES; do
+CONTAINER_FILE=${f#magento/}
+CONTAINER_PHP_FILES="$CONTAINER_PHP_FILES /app/$CONTAINER_FILE"
+done
+
+echo "🐳 Running PHPMD..."
+docker exec -u application web bash -lc \
+"cd /app && vendor/bin/phpmd $CONTAINER_PHP_FILES text /app/phpmd.xml"
+[ $? -ne 0 ] && echo -e "${RED}PHPMD issues found${NC}" && exit 1
+fi
+
+echo -e "${GREEN}✔ Code quality checks passed${NC}"
+exit 0
+```
+
+Make PHPCS ALWAYS use your config:
+
+vendor/bin/phpcs --config-set default_standard app/phpcs.xml
+
+Verify:
+
+vendor/bin/phpcs --config-show | grep default_standard
+
+To see the exact sniff name being triggered:
+
+vendor/bin/phpcs -s app/code/Test/CodeQuality/Helper/Data.php
+
+---
+
+Install SlevomatCodingStandard:
+
+If you want strict_types, class/function naming, docblocks, you need to install it:
+```
+composer require --dev slevomat/coding-standard
+```
+```
+vendor/bin/phpcs --config-set installed_paths vendor/slevomat/coding-standard,vendor/magento/magento-coding-standard
+```
+```
+vendor/bin/phpcs -i
+
+The installed coding standards are MySource, PEAR, PSR1, PSR2, PSR12, Squiz, Zend, SlevomatCodingStandard, Magento2 and Magento2Framework
+```
 ---
 
 ### Step 5: Automate Checks in CI/CD
