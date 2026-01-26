@@ -253,46 +253,53 @@ This will block commits if PHPCS finds violations.
 vim pre-commit:
 ```
 #!/bin/sh
+# Pre-commit hook: PHP code quality checks for Magento2
+# Runs PHPCS and PHPMD using the XML rulesets
 
-# Colors
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-# Get staged PHP files (relative to git root)
-FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$')
-if [ -z "$FILES" ]; then
-exit 0
-fi
+# Get staged PHP and PHTML files
+FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(php|phtml)$')
+[ -z "$FILES" ] && exit 0
 
-echo "🐳 Running PHPCS and PHPMD inside Docker..."
-
-# Map host paths to container paths
+# Map to container paths
 CONTAINER_FILES=""
 for f in $FILES; do
-# Remove leading "magento/" if it exists, because container root is /app
-CONTAINER_FILE=${f#magento/}
-CONTAINER_FILES="$CONTAINER_FILES /app/$CONTAINER_FILE"
+    CONTAINER_FILE=${f#magento/}   # Remove local prefix if needed
+    CONTAINER_FILES="$CONTAINER_FILES /app/$CONTAINER_FILE"
 done
 
-# Run PHPCS
-docker exec -u application web bash -lc "cd /app && vendor/bin/phpcs --standard=Magento2 $CONTAINER_FILES"
-RESULT_PHPCS=$?
-if [ $RESULT_PHPCS -ne 0 ]; then
-echo -e "${YELLOW}⚠ PHPCS warnings found. Fix them before committing.${NC}"
-exit 1
+# PHPCS
+echo "🐳 Running PHPCS..."
+docker exec -u application web bash -lc \
+"cd /app && vendor/bin/phpcs --standard=/app/app/phpcs.xml --extensions=php,phtml $CONTAINER_FILES"
+if [ $? -ne 0 ]; then
+    echo -e "${YELLOW}PHPCS issues found${NC}"
+    exit 1
 fi
 
-# Run PHPMD
-docker exec -u application web bash -lc "cd /app && vendor/bin/phpmd $CONTAINER_FILES text /app/phpmd.xml"
-RESULT_PHPMD=$?
-if [ $RESULT_PHPMD -ne 0 ]; then
-echo -e "${RED}PHPMD found issues. Please check phpmd.xml report.${NC}"
-exit 1
+# PHPMD (only PHP files)
+PHP_FILES=$(echo "$FILES" | grep '\.php$')
+if [ -n "$PHP_FILES" ]; then
+    CONTAINER_PHP_FILES=""
+    for f in $PHP_FILES; do
+        CONTAINER_FILE=${f#magento/}
+        CONTAINER_PHP_FILES="$CONTAINER_PHP_FILES /app/$CONTAINER_FILE"
+    done
+
+    echo "🐳 Running PHPMD..."
+    docker exec -u application web bash -lc \
+    "cd /app && vendor/bin/phpmd $CONTAINER_PHP_FILES text /app/app/phpmd.xml"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}PHPMD issues found${NC}"
+        exit 1
+    fi
 fi
 
-echo -e "${GREEN}Code quality checks passed!${NC}"
+echo -e "${GREEN}✔ Code quality checks passed${NC}"
 exit 0
 ```
 > ![img_5.png](img_5.png)
